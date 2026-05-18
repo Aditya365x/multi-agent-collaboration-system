@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Terminal — Multi-Agent Report System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  --bg-primary: #080c16;
+  --bg-secondary: #0f1525;
+  --bg-tertiary: #171f33;
+  --bg-card: #0d1628;
+  --bg-card-hover: #121d33;
+  --border: #1e2a45;
+  --border-light: #2a3a5c;
+  --text-primary: #e8edf5;
+  --text-secondary: #8b9bb5;
+  --text-muted: #4d5f7a;
+  --accent-amber: #f59e0b;
+  --accent-amber-glow: rgba(245, 158, 11, 0.15);
+  --accent-amber-dim: #b45309;
+  --accent-cyan: #22d3ee;
+  --accent-cyan-glow: rgba(34, 211, 238, 0.12);
+  --accent-cyan-dim: #0891b2;
+  --success: #10b981;
+  --error: #ef4444;
+  --error-glow: rgba(239, 68, 68, 0.12);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ===== Layout ===== */
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ===== Header ===== */
+header {
+  padding: 48px 0 32px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.terminal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  background: var(--accent-amber-glow);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+.terminal-badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+header h1 .accent {
+  color: var(--accent-amber);
+}
+header p {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ===== Input Section ===== */
+.input-section {
+  padding: 40px 0 32px;
+}
+.input-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: border-color 0.3s;
+}
+.input-card:focus-within {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 1px var(--accent-amber-glow), 0 0 30px var(--accent-amber-glow);
+}
+.input-card label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  padding: 16px;
+  resize: vertical;
+  outline: none;
+  transition: background 0.2s;
+}
+textarea::placeholder {
+  color: var(--text-muted);
+}
+textarea:focus {
+  background: var(--bg-tertiary);
+}
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+/* ===== Button ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent-amber);
+  color: #000;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 14px 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary .spinner {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.btn-primary.loading .spinner {
+  display: block;
+}
+.btn-primary.loading .btn-text {
+  display: none;
+}
+.btn-primary.loading .btn-loading-text {
+  display: inline;
+}
+.btn-loading-text {
+  display: none;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.char-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+.char-count.over {
+  color: var(--error);
+}
+
+/* ===== Pipeline Progress ===== */
+.pipeline-section {
+  padding: 0 0 40px;
+  display: none;
+}
+.pipeline-section.visible {
+  display: block;
+}
+.pipeline-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+.step-indicator {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 2px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  transition: all 0.4s;
+}
+.pipeline-step .step-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  transition: color 0.4s;
+}
+.pipeline-step.active .step-indicator {
+  border-color: var(--accent-amber);
+  background: var(--accent-amber-glow);
+  color: var(--accent-amber);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+.pipeline-step.active .step-label {
+  color: var(--accent-amber);
+}
+.pipeline-step.done .step-indicator {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+.pipeline-step.done .step-label {
+  color: var(--success);
+}
+.pipeline-step.current .step-indicator {
+  animation: step-pulse 1.5s ease-in-out infinite;
+}
+@keyframes step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+}
+.step-connector {
+  width: 64px;
+  height: 2px;
+  background: var(--border-light);
+  flex-shrink: 0;
+  transition: background 0.5s;
+  margin: 0 4px;
+  position: relative;
+  top: -12px;
+}
+.step-connector.done {
+  background: var(--success);
+}
+
+/* ===== Results Section ===== */
+.results-section {
+  padding: 0 0 60px;
+  display: none;
+}
+.results-section.visible {
+  display: block;
+}
+.results-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.results-divider::before,
+.results-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.results-divider span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+/* ===== Collapsible Card ===== */
+.collapsible {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.collapsible:hover {
+  border-color: var(--border-light);
+}
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.collapsible-header:hover {
+  background: var(--bg-card-hover);
+}
+.collapsible-header .icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.collapsible-header .icon.research-icon {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--accent-cyan);
+}
+.collapsible-header .icon.analysis-icon {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--accent-amber);
+}
+.collapsible-header h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  flex: 1;
+}
+.collapsible-header .toggle-icon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.collapsible.open .collapsible-header .toggle-icon {
+  transform: rotate(180deg);
+}
+.collapsible-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+}
+.collapsible.open .collapsible-body {
+  max-height: 20000px;
+}
+.collapsible-body-inner {
+  padding: 0 20px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== Final Report Card ===== */
+.final-report {
+  background: linear-gradient(135deg, #0d1628 0%, #111b2e 100%);
+  border: 1px solid var(--accent-amber-dim);
+  border-radius: var(--radius);
+  margin-top: 24px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.05);
+}
+.final-report-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.03);
+}
+.final-report-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: 1;
+  color: var(--accent-amber);
+}
+.final-report-header .subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  display: none;
+}
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-copy:hover {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+  background: var(--accent-amber-glow);
+}
+.btn-copy.copied {
+  border-color: var(--success);
+  color: var(--success);
+}
+.btn-copy svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.final-report-body {
+  padding: 28px 24px;
+}
+.final-report-body .report-content {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.final-report-body .report-content h1,
+.final-report-body .report-content h2,
+.final-report-body .report-content h3 {
+  color: var(--accent-amber);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+.final-report-body .report-content p {
+  margin-bottom: 16px;
+}
+.final-report-body .report-content strong {
+  color: var(--text-primary);
+}
+
+/* ===== Skeleton Loading ===== */
+.skeleton {
+  display: none;
+}
+.skeleton.visible {
+  display: block;
+}
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  margin-bottom: 12px;
+}
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-75 { width: 75%; }
+.skeleton-line.w-90 { width: 90%; }
+.skeleton-line.h-sm { height: 10px; }
+.skeleton-line.h-lg { height: 18px; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===== Error State ===== */
+.error-state {
+  display: none;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.error-state.visible {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.error-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.error-content h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--error);
+}
+.error-content p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== Footer ===== */
+footer {
+  text-align: center;
+  padding: 32px 0;
+  border-top: 1px solid var(--border);
+}
+footer p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+  header {
+    padding: 32px 0 24px;
+  }
+  header h1 {
+    font-size: 1.6rem;
+  }
+  header p {
+    font-size: 0.9rem;
+  }
+  .input-card {
+    padding: 20px;
+  }
+  textarea {
+    min-height: 100px;
+    font-size: 0.9rem;
+    padding: 12px;
+  }
+  .input-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .char-count {
+    margin-left: 0;
+    text-align: right;
+  }
+  .btn-primary {
+    justify-content: center;
+  }
+  .pipeline-track {
+    gap: 0;
+  }
+  .step-connector {
+    width: 32px;
+  }
+  .step-indicator {
+    width: 38px;
+    height: 38px;
+    font-size: 0.7rem;
+  }
+  .pipeline-step .step-label {
+    font-size: 0.6rem;
+  }
+  .final-report-header {
+    padding: 16px;
+    flex-wrap: wrap;
+  }
+  .final-report-header h2 {
+    font-size: 0.9rem;
+  }
+  .btn-copy {
+    font-size: 0.72rem;
+    padding: 6px 12px;
+  }
+  .final-report-body {
+    padding: 20px 16px;
+  }
+  .final-report-body .report-content {
+    font-size: 0.88rem;
+  }
+  .collapsible-header {
+    padding: 14px 16px;
+  }
+  .collapsible-body-inner {
+    padding: 0 16px 16px;
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 400px) {
+  .step-connector {
+    width: 20px;
+  }
+  .step-indicator {
+    width: 32px;
+    height: 32px;
+    font-size: 0.6rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="terminal-badge">
+      <span class="dot"></span>
+      multi-agent pipeline · v1.0
+    </div>
+    <h1><span class="accent">Research</span> Terminal</h1>
+    <p>Three AI agents — Researcher, Analyst, Writer — collaborate to produce structured, publication-ready reports on any topic.</p>
+  </div>
+</header>
+
+<main>
+  <!-- Input -->
+  <section class="input-section">
+    <div class="container">
+      <div class="input-card">
+        <label for="query-input">Research Query</label>
+        <textarea id="query-input" placeholder="e.g. What are the main applications of Large Language Models in healthcare?" maxlength="1000"></textarea>
+        <div class="input-actions">
+          <button class="btn-primary" id="generate-btn" disabled>
+            <span class="spinner"></span>
+            <span class="btn-text">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Generate Report
+            </span>
+            <span class="btn-loading-text">Running Pipeline…</span>
+          </button>
+          <span class="char-count" id="char-count">0 / 1000</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline Progress -->
+  <section class="pipeline-section" id="pipeline-section">
+    <div class="container">
+      <div class="pipeline-track">
+        <div class="pipeline-step" data-step="1">
+          <div class="step-indicator">R</div>
+          <span class="step-label">Researcher</span>
+        </div>
+        <div class="step-connector" data-connector="1"></div>
+        <div class="pipeline-step" data-step="2">
+          <div class="step-indicator">A</div>
+          <span class="step-label">Analyst</span>
+        </div>
+        <div class="step-connector" data-connector="2"></div>
+        <div class="pipeline-step" data-step="3">
+          <div class="step-indicator">W</div>
+          <span class="step-label">Writer</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skeleton Loading -->
+  <section class="container">
+    <div class="skeleton" id="skeleton">
+      <div class="skeleton-card">
+        <div class="skeleton-line w-40 h-lg"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-75"></div>
+        <div class="skeleton-line w-60"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-line w-40 h-lg"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-75"></div>
+        <div class="skeleton-line w-60"></div>
+      </div>
+      <div class="skeleton-card" style="border-color:rgba(245,158,11,0.2);">
+        <div class="skeleton-line w-40 h-lg"></div>
+        <div class="skeleton-line w-90"></div>
+        <div class="skeleton-line w-75"></div>
+        <div class="skeleton-line w-60"></div>
+        <div class="skeleton-line w-75"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Error State -->
+  <section class="container">
+    <div class="error-state" id="error-state">
+      <div class="error-icon">!</div>
+      <div class="error-content">
+        <h4>Pipeline Failed</h4>
+        <p id="error-message">An unexpected error occurred while generating the report. Please check your API key and try again.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="results-section" id="results-section">
+    <div class="container">
+      <div class="results-divider">
+        <span>Results</span>
+      </div>
+
+      <!-- Raw Research -->
+      <div class="collapsible" id="research-card">
+        <div class="collapsible-header">
+          <div class="icon research-icon">R</div>
+          <h3>Raw Research</h3>
+          <span class="toggle-icon">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="collapsible-body-inner" id="research-content"></div>
+        </div>
+      </div>
+
+      <!-- Analysis -->
+      <div class="collapsible" id="analysis-card">
+        <div class="collapsible-header">
+          <div class="icon analysis-icon">A</div>
+          <h3>Analysis</h3>
+          <span class="toggle-icon">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="collapsible-body-inner" id="analysis-content"></div>
+        </div>
+      </div>
+
+      <!-- Final Report -->
+      <div class="final-report" id="final-report">
+        <div class="final-report-header">
+          <h2>Final Report</h2>
+          <button class="btn-copy" id="copy-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+        <div class="final-report-body">
+          <div class="report-content" id="report-content"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Multi-Agent Research Pipeline · LangGraph + FastAPI + DeepSeek</p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  const API_URL = '/generate-report';
+
+  // DOM refs
+  const queryInput = document.getElementById('query-input');
+  const generateBtn = document.getElementById('generate-btn');
+  const charCount = document.getElementById('char-count');
+  const pipelineSection = document.getElementById('pipeline-section');
+  const skeleton = document.getElementById('skeleton');
+  const errorState = document.getElementById('error-state');
+  const errorMessage = document.getElementById('error-message');
+  const resultsSection = document.getElementById('results-section');
+  const researchContent = document.getElementById('research-content');
+  const analysisContent = document.getElementById('analysis-content');
+  const reportContent = document.getElementById('report-content');
+  const copyBtn = document.getElementById('copy-btn');
+
+  const steps = document.querySelectorAll('.pipeline-step');
+  const connectors = document.querySelectorAll('.step-connector');
+  const researchCard = document.getElementById('research-card');
+  const analysisCard = document.getElementById('analysis-card');
+
+  let isGenerating = false;
+  let abortController = null;
+
+  // ===== Character count & enable/disable =====
+  queryInput.addEventListener('input', function() {
+    const len = this.value.length;
+    charCount.textContent = len + ' / 1000';
+    charCount.classList.toggle('over', len > 900);
+    generateBtn.disabled = len === 0 || isGenerating;
+  });
+
+  // ===== Collapsible toggles =====
+  document.querySelectorAll('.collapsible-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      const card = this.closest('.collapsible');
+      card.classList.toggle('open');
+    });
+  });
+
+  // ===== Copy button =====
+  copyBtn.addEventListener('click', function() {
+    const text = reportContent.textContent;
+    if (!text) return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        showCopied();
+      }).catch(function() {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showCopied();
+    } catch (e) {
+      // silently fail
+    }
+    document.body.removeChild(ta);
+  }
+
+  function showCopied() {
+    copyBtn.classList.add('copied');
+    copyBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+    setTimeout(function() {
+      copyBtn.classList.remove('copied');
+      copyBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+    }, 2000);
+  }
+
+  // ===== Pipeline animation helper =====
+  function resetPipeline() {
+    steps.forEach(function(s) {
+      s.classList.remove('active', 'done', 'current');
+    });
+    connectors.forEach(function(c) {
+      c.classList.remove('done');
+    });
+  }
+
+  function animatePipelineStep(stepIndex) {
+    return new Promise(function(resolve) {
+      // stepIndex: 0 = researcher, 1 = analyst, 2 = writer
+      if (stepIndex > 0) {
+        steps[stepIndex - 1].classList.remove('current');
+        steps[stepIndex - 1].classList.add('done');
+        if (connectors[stepIndex - 1]) {
+          connectors[stepIndex - 1].classList.add('done');
+        }
+      }
+      steps[stepIndex].classList.add('active', 'current');
+
+      // Mark previous steps as done (in case of fast skip)
+      for (let i = 0; i < stepIndex; i++) {
+        steps[i].classList.remove('active', 'current');
+        steps[i].classList.add('done');
+        if (connectors[i]) connectors[i].classList.add('done');
+      }
+
+      setTimeout(resolve, 800);
+    });
+  }
+
+  // ===== Main generate action =====
+  generateBtn.addEventListener('click', generateReport);
+
+  // Allow Enter to trigger (but Shift+Enter for newline)
+  queryInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!generateBtn.disabled) {
+        generateReport();
+      }
+    }
+  });
+
+  async function generateReport() {
+    if (isGenerating) return;
+
+    const query = queryInput.value.trim();
+    if (!query) return;
+
+    isGenerating = true;
+    generateBtn.disabled = true;
+    generateBtn.classList.add('loading');
+
+    // Hide previous results/errors, reset
+    errorState.classList.remove('visible');
+    resultsSection.classList.remove('visible');
+    skeleton.classList.remove('visible');
+    pipelineSection.classList.remove('visible');
+    resetPipeline();
+
+    // Show pipeline
+    pipelineSection.classList.add('visible');
+
+    // Simulate pipeline steps while fetching
+    const fetchPromise = fetchReport(query);
+
+    // Animate steps in parallel — don't wait for the full animation
+    // Instead, tick through steps with timing independent of fetch
+    const animatePromise = (async function() {
+      await sleep(400);
+      await animatePipelineStep(0); // Researcher
+
+      await sleep(200);
+      await animatePipelineStep(1); // Analyst
+
+      await sleep(200);
+      await animatePipelineStep(2); // Writer
+    })();
+
+    // Show skeleton after a brief delay if still loading
+    const skeletonTimer = setTimeout(function() {
+      if (isGenerating) {
+        skeleton.classList.add('visible');
+      }
+    }, 1200);
+
+    let result;
+    try {
+      result = await fetchPromise;
+    } catch (err) {
+      // Fetch failed
+      clearTimeout(skeletonTimer);
+      skeleton.classList.remove('visible');
+      pipelineSection.classList.remove('visible');
+      resetPipeline();
+      showError(err);
+      isGenerating = false;
+      generateBtn.classList.remove('loading');
+      generateBtn.disabled = false;
+      if (queryInput.value.length > 0) generateBtn.disabled = false;
+      return;
+    }
+
+    clearTimeout(skeletonTimer);
+    await animatePromise;
+
+    // Mark all steps done
+    steps.forEach(function(s) {
+      s.classList.remove('active', 'current');
+      s.classList.add('done');
+    });
+    connectors.forEach(function(c) {
+      c.classList.add('done');
+    });
+
+    // Populate results
+    researchContent.textContent = result.research || 'No research data returned.';
+    analysisContent.textContent = result.analysis || 'No analysis data returned.';
+    reportContent.textContent = result.final_report || 'No report was generated.';
+
+    // Open collapsibles by default
+    researchCard.classList.add('open');
+    analysisCard.classList.add('open');
+
+    // Hide skeleton, show results
+    skeleton.classList.remove('visible');
+    resultsSection.classList.add('visible');
+
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    isGenerating = false;
+    generateBtn.classList.remove('loading');
+    generateBtn.disabled = false;
+    if (queryInput.value.length > 0) generateBtn.disabled = false;
+  }
+
+  async function fetchReport(query) {
+    const controller = new AbortController();
+    abortController = controller;
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      let detail = 'Server returned ' + response.status;
+      try {
+        const errBody = await response.json();
+        if (errBody.detail) detail = errBody.detail;
+      } catch (_) {}
+      throw new Error(detail);
+    }
+
+    return await response.json();
+  }
+
+  function showError(err) {
+    errorMessage.textContent =
+      err.name === 'AbortError'
+        ? 'Request was cancelled.'
+        : err.message || 'An unexpected error occurred. Please check your API key and ensure the backend server is running.';
+    errorState.classList.add('visible');
+    errorState.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function sleep(ms) {
+    return new Promise(function(r) { setTimeout(r, ms); });
+  }
+})();
+</script>
+</body>
+</html>

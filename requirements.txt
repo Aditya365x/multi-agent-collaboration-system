@@ -1,0 +1,23 @@
+# requirements.txt
+# Install all dependencies with: pip install -r requirements.txt
+
+# LangChain Core — prompt templates, LLM wrappers (ChatPromptTemplate lives here in v1.x)
+langchain-core>=0.3.0
+
+# LangChain OpenAI integration — lets us use ChatOpenAI (also works with DeepSeek via base_url)
+langchain-openai>=0.1.23
+
+# LangGraph — the state machine / multi-agent orchestration layer
+langgraph>=0.2.14
+
+# FastAPI — the web framework to expose the pipeline as an API
+fastapi>=0.115.0
+
+# Uvicorn — the ASGI server that runs FastAPI
+uvicorn>=0.30.6
+
+# Pydantic — request/response validation (used directly in app.py)
+pydantic>=2.0.0
+
+# Python-dotenv — loads environment variables from a .env file
+python-dotenv>=1.0.1

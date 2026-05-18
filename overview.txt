@@ -1,0 +1,42 @@
+Multi-Agent Research Report System
+===================================
+
+A pipeline where three specialized LLM agents collaborate to produce structured
+research reports. Built with LangGraph, FastAPI, and DeepSeek.
+
+Files
+-----
+
+researcher.py   Agent 1 - gathers raw facts on the query (temperature 0.3)
+analyst.py      Agent 2 - extracts insights, patterns, and key takeaways from
+                the research (temperature 0.2)
+writer.py       Agent 3 - writes the final structured report from all prior
+                outputs (temperature 0.5)
+pipeline.py     Wires the three agents into a LangGraph StateGraph - defines
+                execution order and shared state
+state.py        The AgentState TypedDict passed between agents (query, research,
+                analysis, final_report)
+app.py          FastAPI server - serves the API (POST /generate-report) and the
+                frontend at the root URL
+main.py         CLI entry point for testing the pipeline without the API server
+index.html      Dark terminal-themed frontend with pipeline progress animation
+                and collapsible output sections
+requirements.txt  Python dependencies (langchain-core, langchain-openai,
+                langgraph, fastapi, uvicorn, pydantic, python-dotenv)
+Dockerfile      Container build - serves everything on a single port
+.env            DeepSeek API key (loaded via python-dotenv)
+
+Flow
+----
+
+User Query -> Researcher -> Analyst -> Writer -> Final Report
+
+Each agent reads from shared state, writes its output, and passes it forward.
+No direct agent-to-agent calls.
+
+Run it
+------
+
+CLI only:       python main.py
+API + frontend: uvicorn app:app --reload
+Container:      docker run -e KEY=... -p 8000:8000 research-terminal
